@@ -1,0 +1,10 @@
+resources:
+- deployment.yaml
+- hooks.yaml
+configMapGenerator:
+- name: service-per-pod-hooks
+  namespace: metacontroller
+  files:
+  - finalize-service-per-pod.cue
+  - sync-pod-name-label.cue
+  - sync-service-per-pod.cue
