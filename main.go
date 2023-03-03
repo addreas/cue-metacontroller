@@ -40,7 +40,7 @@ func fillOvl(p string, ovl map[string]load.Source) error {
 			if err != nil {
 				return err
 			}
-			ovl[pp] = load.FromBytes(content)
+			ovl[path.Join(*dir, pp)] = load.FromBytes(content)
 		}
 	}
 	return nil
@@ -68,19 +68,18 @@ func main() {
 	if err != nil {
 		if cueErr, ok := err.(errors.Error); ok {
 			log.Fatalf("failed to build instances: %s", errors.Details(cueErr, nil))
-
 		} else {
 			log.Fatalf("failed to build instances: %v", err)
 		}
 	}
 
-	if len(instances) > 1 {
-		log.Println("multiple instances found, this is unexpected")
+	if len(instances) != 2 {
+		log.Println("not sure where the first empty instance comes from, but the second one is the only one that should exist")
 	}
 
 	log.Printf("loaded controller definition: %#v", instances)
 
-	controllerDefinition := instances[0]
+	controllerDefinition := instances[1]
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -106,15 +105,21 @@ func main() {
 			}
 		}
 
-		val := controllerDefinition.FillPath(cue.MakePath(append(selectorParts, cue.Str("request"))...), data).Value()
-
+		log.Printf("%#v", controllerDefinition)
+		val := controllerDefinition.FillPath(cue.MakePath(append(selectorParts, cue.Str("request"))...), data).Eval()
 		log.Printf("%#v", val)
 
 		result, err := val.LookupPath(cue.MakePath(append(selectorParts, cue.Str("response"))...)).MarshalJSON()
 		if err != nil {
 			log.Printf("/%s request: %v", r.URL.Path, data)
-			log.Printf("/%s error: %s", r.URL.Path, err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			var errStr string
+			if cueErr, ok := err.(errors.Error); ok {
+				errStr = errors.Details(cueErr, nil)
+			} else {
+				errStr = err.Error()
+			}
+			log.Printf("/%s error: %s", r.URL.Path, errStr)
+			http.Error(w, errStr, http.StatusInternalServerError)
 			return
 		}
 

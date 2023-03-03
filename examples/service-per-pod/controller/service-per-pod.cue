@@ -25,7 +25,7 @@ m: DecoratorController: "service-per-pod": #hooks: sync: {
 	request: {
 		object: {
 			metadata: annotations: [string]: string
-			spec: replicas: int
+			spec: replicas: number
 		}
 	}
 
@@ -33,7 +33,7 @@ m: DecoratorController: "service-per-pod": #hooks: sync: {
 		let statefulset = request.object
 		let labelKey = statefulset.metadata.annotations["service-per-pod-label"]
 		let portList = [
-			for item in statefulset.metadata.annotations["service-per-pod-ports"] {
+			for item in strings.Split(statefulset.metadata.annotations["service-per-pod-ports"], ",") {
 				let parts = strings.Split(item, ":")
 				let left = strconv.Atoi(parts[0])
 				let right = strconv.Atoi(parts[1])
@@ -46,7 +46,7 @@ m: DecoratorController: "service-per-pod": #hooks: sync: {
 
 		// Create a service for each Pod, with a selector on the given label key.
 		attachments: [
-			for index in list.Range(0, statefulset.spec.replicas-1) {
+			for index in list.Range(0, statefulset.spec.replicas, 1) {
 				let indexedName = "\(statefulset.metadata.name)-\(index)"
 				apiVersion: "v1"
 				kind:       "Service"
