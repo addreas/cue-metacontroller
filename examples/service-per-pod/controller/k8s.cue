@@ -2,17 +2,34 @@ package controller
 
 controllerName: "cue-metacontroller"
 
+m: _
+
 k: DecoratorController: {
 	for n, value in m.DecoratorController {
 		(n): {
 			apiVersion: "metacontroller.k8s.io/v1alpha1"
 			kind:       "DecoratorController"
 			metadata: name: n
-			spec: {
-				resources:   value.resources
-				attachments: value.attachments
+			spec: value & {
 				hooks: {
-					for t, handler in value.hooks {
+					for t, handler in value.#hooks {
+						(t): webhook: url: "http://\(controllerName).metacontroller/DecoratorController/\(n)/hooks/\(t)"
+					}
+				}
+			}
+		}
+	}
+}
+
+k: CompositeController: {
+	for n, value in m.CompositeController {
+		(n): {
+			apiVersion: "metacontroller.k8s.io/v1alpha1"
+			kind:       "CompositeController"
+			metadata: name: n
+			spec: value & {
+				hooks: {
+					for t, handler in value.#hooks {
 						(t): webhook: url: "http://\(controllerName).metacontroller/DecoratorController/\(n)/hooks/\(t)"
 					}
 				}

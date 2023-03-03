@@ -19,11 +19,9 @@ m: DecoratorController: "service-per-pod": {
 		apiVersion: "v1"
 		resource:   "services"
 	}]
-
-	hooks: _
 }
 
-m: DecoratorController: "service-per-pod": hooks: sync: {
+m: DecoratorController: "service-per-pod": #hooks: sync: {
 	request: {
 		object: {
 			metadata: annotations: [string]: string
@@ -66,7 +64,7 @@ m: DecoratorController: "service-per-pod": hooks: sync: {
 	}
 }
 
-m: DecoratorController: "service-per-pod": hooks: finalize: {
+m: DecoratorController: "service-per-pod": #hooks: finalize: {
 	request: {
 		attachments: "Service.v1": *[] | _
 	}

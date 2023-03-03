@@ -7,17 +7,10 @@ m: DecoratorController: "pod-name-label": {
 		labelSelector: matchExpressions: [{key: "pod-name", operator: "DoesNotExist"}]
 		annotationSelector: matchExpressions: [{key: "pod-name-label", operator: "Exists"}]
 	}]
-
-	hooks: _
 }
 
-m: DecoratorController: "pod-name-label": hooks: sync: {
-	request: {
-		object: metadata: {
-			annotations: [string]: string
-			name: string
-		}
-	}
+m: DecoratorController: "pod-name-label": #hooks: sync: {
+	request?: _
 	response: {
 		let pod = request.object
 		let labelKey = pod.metadata.annotations["pod-name-label"]

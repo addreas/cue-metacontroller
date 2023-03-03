@@ -1,37 +1,57 @@
 package controller
 
 import (
-    decorator_v1 "github.com/metacontroller/metacontroller/pkg/controller/decorator/api/v1"
-    composite_v1 "github.com/metacontroller/metacontroller/pkg/controller/composite/api/v1"
-    customize_v1 "github.com/metacontroller/metacontroller/pkg/controller/common/customize/api/v1"
+	metacontroller_v1alpha1 "github.com/metacontroller/metacontroller/pkg/apis/metacontroller/v1alpha1"
+	decorator_v1 "github.com/metacontroller/metacontroller/pkg/controller/decorator/api/v1"
+	composite_v1 "github.com/metacontroller/metacontroller/pkg/controller/composite/api/v1"
+	customize_v1 "github.com/metacontroller/metacontroller/pkg/controller/common/customize/api/v1"
 )
 
-m: DecoratorController: [string]: hooks: {
-	sync?: {
-		request:  decorator_v1.#DecoratorHookRequest
-		response: decorator_v1.#DecoratorHookResponse
+_opt: {
+	$: _
+	out: {
+		for key, value in $ {
+			"\(key)"?: value
+		}
 	}
-	finalize?: {
-		request:  decorator_v1.#DecoratorHookRequest
-		response: decorator_v1.#DecoratorHookResponse
-	}
-	customize?: {
-        request: customize_v1.#CustomizeHookRequest
-        response: customize_v1.#CustomizeHookResponse
-    }
 }
 
-m: CompositeController: [string]: hooks: {
-	sync?: {
-		request:  composite_v1.#CompositeHookRequest
-		response: composite_v1.#CompositeHookResponse
+m: DecoratorController: [string]: {
+	resources: [...metacontroller_v1alpha1.#DecoratorControllerResourceRule]
+	attachments?: [...metacontroller_v1alpha1.#DecoratorControllerAttachmentRule]
+
+	#hooks: {
+		sync?: {
+			request?:  (_opt & {$: decorator_v1.#DecoratorHookRequest}).out
+			response?: (_opt & {$: decorator_v1.#DecoratorHookResponse}).out
+		}
+		finalize?: {
+			request?:  (_opt & {$: decorator_v1.#DecoratorHookRequest}).out
+			response?: (_opt & {$: decorator_v1.#DecoratorHookResponse}).out
+		}
+		customize?: {
+			request?:  (_opt & {$: customize_v1.#CustomizeHookRequest}).out
+			response?: (_opt & {$: customize_v1.#CustomizeHookResponse}).out
+		}
 	}
-	finalize?: {
-		request:  composite_v1.#CompositeHookRequest
-		response: composite_v1.#CompositeHookResponse
+}
+
+m: CompositeController: [string]: {
+	parentResource: metacontroller_v1alpha1.#CompositeControllerParentResourceRule
+	childResources?: [...metacontroller_v1alpha1.#CompositeControllerChildResourceRule]
+
+	#hooks: {
+		sync?: {
+			request?:  (_opt & {$: composite_v1.#CompositeHookRequest}).out
+			response?: (_opt & {$: composite_v1.#CompositeHookResponse}).out
+		}
+		finalize?: {
+			request?:  (_opt & {$: composite_v1.#CompositeHookRequest}).out
+			response?: (_opt & {$: composite_v1.#CompositeHookResponse}).out
+		}
+		customize?: {
+			request?:  (_opt & {$: customize_v1.#CustomizeHookRequest}).out
+			response?: (_opt & {$: customize_v1.#CustomizeHookResponse}).out
+		}
 	}
-	customize?: {
-        request: customize_v1.#CustomizeHookRequest
-        response: customize_v1.#CustomizeHookResponse
-    }
 }
