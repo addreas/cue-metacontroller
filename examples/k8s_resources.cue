@@ -13,7 +13,7 @@ k: DecoratorController: {
 			spec: value & {
 				hooks: {
 					for t, handler in value.#hooks {
-						(t): webhook: url: "http://\(controllerName).metacontroller/DecoratorController/\(n)/hooks/\(t)"
+						(t): webhook: url: "http://\(controllerName).metacontroller/DecoratorController/\(n)/%23hooks/\(t)"
 					}
 				}
 			}
@@ -30,7 +30,7 @@ k: CompositeController: {
 			spec: value & {
 				hooks: {
 					for t, handler in value.#hooks {
-						(t): webhook: url: "http://\(controllerName).metacontroller/DecoratorController/\(n)/hooks/\(t)"
+						(t): webhook: url: "http://\(controllerName).metacontroller/DecoratorController/\(n)/%23hooks/\(t)"
 					}
 				}
 			}
