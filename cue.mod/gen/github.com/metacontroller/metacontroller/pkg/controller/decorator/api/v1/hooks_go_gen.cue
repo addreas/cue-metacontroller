@@ -25,8 +25,8 @@ import (
 	annotations: {[string]: null | string} @go(Annotations,map[string]*string)
 	status: {...} @go(Status,map[string]interface{})
 	attachments: [...null | unstructured.#Unstructured] @go(Attachments,[]*unstructured.Unstructured)
-	resyncAfterSeconds: float64 @go(ResyncAfterSeconds)
+	resyncAfterSeconds?: float64 @go(ResyncAfterSeconds)
 
 	// Finalized is only used by the finalize hook.
-	finalized: bool @go(Finalized)
+	finalized?: bool @go(Finalized)
 }

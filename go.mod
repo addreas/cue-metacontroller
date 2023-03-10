@@ -3,7 +3,7 @@ module github.com/addreas/cue-metacontroller
 go 1.20
 
 require (
-	cuelang.org/go v0.4.3
+	cuelang.org/go v0.5.0-beta.5
 	k8s.io/api v0.26.2
 	k8s.io/apimachinery v0.26.2
 	k8s.io/kube-aggregator v0.26.2

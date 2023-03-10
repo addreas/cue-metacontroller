@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"embed"
-	"encoding/json"
 	"flag"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -20,13 +20,17 @@ import (
 )
 
 var (
-	dir = flag.String("dir", ".", "Directory of cue files")
+	dir                    = flag.String("dir", ".", "Directory of cue files")
+	printController        = flag.Bool("print-controller", false, "Print the controller definition on startup")
+	printRequest           = flag.Bool("print-request", false, "Print received request merged is into controller definition")
+	printResponse          = flag.Bool("print-response", false, "Print response after request is merged into controller definition")
+	printEvaluatedResponse = flag.Bool("print-evaluated-response", false, "Print evaluated response after request is merged into controller definition")
 
 	//go:embed cue.mod/gen/**/*
 	cueModOverlay embed.FS
 )
 
-func fillOvl(p string, ovl map[string]load.Source) error {
+func fillOvl(p string, cwd string, ovl map[string]load.Source) error {
 	items, err := cueModOverlay.ReadDir(p)
 	if err != nil {
 		return err
@@ -34,13 +38,13 @@ func fillOvl(p string, ovl map[string]load.Source) error {
 	for _, file := range items {
 		pp := path.Join(p, file.Name())
 		if file.IsDir() {
-			fillOvl(pp, ovl)
+			fillOvl(pp, cwd, ovl)
 		} else {
 			content, err := cueModOverlay.ReadFile(pp)
 			if err != nil {
 				return err
 			}
-			ovl[path.Join(*dir, pp)] = load.FromBytes(content)
+			ovl[path.Join(cwd, pp)] = load.FromBytes(content)
 		}
 	}
 	return nil
@@ -50,12 +54,21 @@ func main() {
 	flag.Parse()
 
 	ovl := map[string]load.Source{}
-	fillOvl(".", ovl)
+	var moduleRoot string
+	if !path.IsAbs(*dir) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("failled to get cwd: %s", err)
+		}
+		moduleRoot = cwd
+	} else {
+		moduleRoot = *dir
+	}
+	fillOvl(".", moduleRoot, ovl)
+	// log.Fatalln()
 
 	cfg := &load.Config{
 		Dir:     *dir,
-		Package: "*",
-
 		Overlay: ovl,
 	}
 
@@ -73,13 +86,14 @@ func main() {
 		}
 	}
 
-	if len(instances) != 2 {
+	if len(instances) != 1 {
 		log.Println("not sure where the first empty instance comes from, but the second one is the only one that should exist")
 	}
 
-	log.Printf("loaded controller definition: %#v", instances)
-
-	controllerDefinition := instances[1]
+	controllerDefinition := instances[0]
+	if *printController {
+		log.Printf("loaded controller definition: %#v", controllerDefinition)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -88,38 +102,53 @@ func main() {
 			return
 		}
 
-		var data interface{}
-		err := json.NewDecoder(r.Body).Decode(&data)
+		data, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Can't read body", http.StatusInternalServerError)
+			return
+		}
+		cueData := controllerDefinition.Context().CompileBytes(data)
+
+		if cueData.Validate() != nil {
+			http.Error(w, "Can't validate body: "+errors.Details(cueData.Err(), nil), http.StatusInternalServerError)
 			return
 		}
 
 		splitPath := strings.Split(strings.TrimPrefix(r.URL.Path, "/"), "/")
 		selectorParts := []cue.Selector{}
 		for _, part := range splitPath {
-			if part == "hooks" {
-				selectorParts = append(selectorParts, cue.Def(part))
+			if part[0] == '#' || part[0] == ':' { // Either have to use %23 for # to not end path/query part of url or use : as a marker instead... wat do
+				selectorParts = append(selectorParts, cue.Def(part[1:]))
 			} else {
 				selectorParts = append(selectorParts, cue.Str(part))
 			}
 		}
 
-		log.Printf("%#v", controllerDefinition)
-		val := controllerDefinition.FillPath(cue.MakePath(append(selectorParts, cue.Str("request"))...), data).Eval()
-		log.Printf("%#v", val)
+		// log.Printf("%#v", controllerDefinition)
+		val := controllerDefinition.FillPath(cue.MakePath(append(selectorParts, cue.Str("request"))...), cueData).Eval()
+		err = val.Validate(cue.Concrete(true))
+		if err != nil {
+			details := errors.Details(err, nil)
+			log.Println("error details:\n", details)
+			http.Error(w, details, http.StatusInternalServerError)
+			return
+		}
+
+		if *printRequest {
+			log.Printf("request: %#v", val.LookupPath(cue.MakePath(append(selectorParts, cue.Str("request"))...)))
+		}
+		if *printResponse {
+			log.Printf("response: %#v", val.LookupPath(cue.MakePath(append(selectorParts, cue.Str("response"))...)))
+		}
+		if *printEvaluatedResponse {
+			log.Printf("evaluated response: %#v", val.LookupPath(cue.MakePath(append(selectorParts, cue.Str("response"))...)).Eval())
+		}
 
 		result, err := val.LookupPath(cue.MakePath(append(selectorParts, cue.Str("response"))...)).MarshalJSON()
 		if err != nil {
-			log.Printf("/%s request: %v", r.URL.Path, data)
-			var errStr string
-			if cueErr, ok := err.(errors.Error); ok {
-				errStr = errors.Details(cueErr, nil)
-			} else {
-				errStr = err.Error()
-			}
-			log.Printf("/%s error: %s", r.URL.Path, errStr)
-			http.Error(w, errStr, http.StatusInternalServerError)
+			// Should be possible to catch
+			log.Printf("%s error: %s", r.URL.Path, err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -128,9 +157,8 @@ func main() {
 	})
 
 	server := &http.Server{Addr: ":8080"}
-	go func() {
-		log.Fatal(server.ListenAndServe())
-	}()
+	go func() { log.Fatal(server.ListenAndServe()) }()
+	log.Println("Listening on localhost:8080...")
 
 	// Shutdown on SIGTERM.
 	sigchan := make(chan os.Signal, 2)

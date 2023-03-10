@@ -19,4 +19,6 @@ cue-get-go:
 
 	@mkdir -p cue.mod/gen/github.com/metacontroller
 	@mv cue.mod/gen/{metacontroller,github.com/metacontroller}
-	@sed -i 's%metacontroller/pkg%github.com/metacontroller/metacontroller/pkg%g' cue.mod/gen/github.com/metacontroller/**/*.go
+	@sed -i 's%metacontroller/pkg%github.com/metacontroller/metacontroller/pkg%g' cue.mod/gen/github.com/metacontroller/**/*.cue
+	@sed -i 's/resyncAfterSeconds: float64/resyncAfterSeconds?: float64/' cue.mod/gen/github.com/metacontroller/**/*.cue
+	@sed -i 's/finalized: bool/finalized?: bool/' cue.mod/gen/github.com/metacontroller/**/*.cue

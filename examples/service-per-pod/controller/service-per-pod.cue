@@ -4,6 +4,8 @@ import (
 	"list"
 	"strconv"
 	"strings"
+
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 m: DecoratorController: "service-per-pod": {
@@ -22,12 +24,7 @@ m: DecoratorController: "service-per-pod": {
 }
 
 m: DecoratorController: "service-per-pod": #hooks: sync: {
-	request: {
-		object: {
-			metadata: annotations: [string]: string
-			spec: replicas: number
-		}
-	}
+	request: object: appsv1.#StatefulSet
 
 	response: {
 		let statefulset = request.object

@@ -1,5 +1,5 @@
-cuelang.org/go v0.4.3 h1:W3oBBjDTm7+IZfCKZAmC8uDG0eYfJL4Pp/xbbCMKaVo=
-cuelang.org/go v0.4.3/go.mod h1:7805vR9H+VoBNdWFdI7jyDR3QLUPp4+naHfbcgp55HI=
+cuelang.org/go v0.5.0-beta.5 h1:TAV4ZjXw2M6xf6jI8XyAAXCqWJ82Y0oxhlf9w3l544A=
+cuelang.org/go v0.5.0-beta.5/go.mod h1:okjJBHFQFer+a41sAe2SaGm1glWS8oEb6CmJvn5Zdws=
 github.com/cockroachdb/apd/v2 v2.0.2 h1:weh8u7Cneje73dDh+2tEVLUvyBc89iwepWCD8b8034E=
 github.com/cockroachdb/apd/v2 v2.0.2/go.mod h1:DDxRlzC2lo3/vSlmSoS7JkqbbrARPuFOGr0B9pvN3Gw=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -46,7 +46,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/protocolbuffers/txtpbfmt v0.0.0-20230302092707-1a4f451475b2 h1:chA0CzAqtEvKxN8EjbxlGj23KFLY/Ge9Ow8S2cbxsow=
 github.com/protocolbuffers/txtpbfmt v0.0.0-20230302092707-1a4f451475b2/go.mod h1:jgxiZysxFPM+iWKwQwPR+y+Jvo54ARd4EisXxKYpB5c=
-github.com/rogpeppe/go-internal v1.8.1 h1:geMPLpDpQOgVyCg5z5GoRwLHepNdb71NXb67XFkP+Eg=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=

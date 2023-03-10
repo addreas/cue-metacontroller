@@ -23,8 +23,8 @@ import (
 #CompositeHookResponse: {
 	status: {...} @go(Status,map[string]interface{})
 	children: [...null | unstructured.#Unstructured] @go(Children,[]*unstructured.Unstructured)
-	resyncAfterSeconds: float64 @go(ResyncAfterSeconds)
+	resyncAfterSeconds?: float64 @go(ResyncAfterSeconds)
 
 	// Finalized is only used by the finalize hook.
-	finalized: bool @go(Finalized)
+	finalized?: bool @go(Finalized)
 }
